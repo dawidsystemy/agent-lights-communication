@@ -1,0 +1,50 @@
+{
+  "_comment": "Example Claude Code hooks wiring for Agent-Lights-Communication. Merge the relevant blocks into your ~/.claude/settings.json (adjust the absolute path to session-signal.py). Each hook is fail-open and prints nothing to stdout.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"/path/to/agent-lights-communication/examples/session-signal.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"/path/to/agent-lights-communication/examples/session-signal.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"/path/to/agent-lights-communication/examples/session-signal.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"/path/to/agent-lights-communication/examples/session-signal.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

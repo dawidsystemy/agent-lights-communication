@@ -1,0 +1,8 @@
+# Normalize all text to LF in the repo and on checkout, so shell scripts and the
+# systemd unit stay Linux-safe regardless of the contributor's OS.
+* text=auto eol=lf
+
+# Binary assets (none bundled today, but keep future images/models from being mangled).
+*.png binary
+*.jpg binary
+*.onnx binary

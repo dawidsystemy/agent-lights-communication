@@ -1,0 +1,35 @@
+# Local config (copied from *.example.*)
+agent-lights-config.ps1
+/etc/agent-lights.conf
+config.conf
+config.zones.conf
+
+# State + runtime
+*.count
+*.flag
+me/
+prompts/
+inbox/
+hb-laptop
+override
+state
+waiting
+session-monitor.map
+
+# Logs
+*.log
+
+# Backups / editor cruft
+*.bak
+*.bak-*
+*~
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db

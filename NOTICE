@@ -1,0 +1,40 @@
+Agent-Lights-Communication
+Copyright (c) 2026 Dawid Krętkowski (SYSTEMY Dawid Krętkowski)
+
+This product is licensed under the MIT License (see LICENSE). It depends on and
+interoperates with third-party software that is NOT included in this repository
+and remains under its own license. You must obtain and comply with those licenses
+yourself.
+
+Dependencies and licenses
+--------------------------
+
+OpenRGB
+  License: GPL-2.0
+  Used as: an external program / SDK server reached over a TCP socket (arm's-length
+           communication). OpenRGB's source is NOT copied, linked, or bundled here.
+  Bundled: NO. Install OpenRGB yourself (https://openrgb.org/).
+
+openrgb-python (jath03/openrgb-python)
+  License: GPL-3.0
+  Used as: a Python client library imported by station/agent-lightsd.py
+           (`from openrgb import OpenRGBClient`).
+  IMPORTANT: importing a GPL-3.0 library is an argument for linking / a derivative
+  work. As shipped, the daemon module effectively carries GPL-3.0 obligations when
+  distributed together with openrgb-python, even though the rest of the original code
+  in this repository is offered under MIT. This library is NOT bundled here; it is a
+  declared dependency you install separately.
+  Planned: replace this client with a from-scratch implementation of the OpenRGB SDK
+  wire protocol over a raw socket, so the daemon can be pure MIT with no GPL client.
+  Until then, treat station/agent-lightsd.py as GPL-3.0-encumbered when used with
+  openrgb-python.
+
+Python standard library
+  License: PSF License.
+
+Trademarks
+----------
+OpenRGB, MSI, Mystic Light and JRAINBOW are trademarks of their respective owners.
+They are used here only descriptively, to state compatibility. This project is not
+affiliated with, sponsored by, or endorsed by MSI, the OpenRGB project, or any other
+trademark holder. No third-party logos or trademarked artwork are included.
