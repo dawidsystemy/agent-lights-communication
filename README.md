@@ -110,6 +110,19 @@ Developed and running daily on:
 If your hardware differs, only the zone map / LED ranges in the config need calibrating
 (see the calibration note below).
 
+## ⚠️ Hardware safety
+
+- This project only sends standard colour updates through the OpenRGB SDK (Direct mode).
+  It never flashes firmware or writes persistent device settings.
+- OpenRGB itself, however, talks directly to RGB controllers. Its documentation warns that
+  on rare, specific devices this has caused problems - historically a few MSI boards had
+  their RGB controller bricked, which is why OpenRGB disabled those devices outright. Check
+  the [OpenRGB supported-devices list](https://openrgb.org/) for your motherboard **before**
+  the first run.
+- Start with the built-in override/test mode on a single zone, not full animations, to
+  confirm your controller responds cleanly.
+- Use at your own risk - see [LICENSE](LICENSE) (no warranty).
+
 ## Install
 
 ### 1. Station
