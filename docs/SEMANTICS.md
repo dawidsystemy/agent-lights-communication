@@ -19,7 +19,7 @@ Two principles run through everything:
 |-------|--------|---------|---------|
 | Idle | Green | Steady | No work in progress, no decisions queued. |
 | Cards queued | Green | N dips | N decision "cards" waiting in the backlog. Calm - not blocking. |
-| Working | Blue | Steady (1 unit) or N dips | Work in progress. N = total working units (orchestrator sessions + subagents + station sessions). Exactly one unit -> steady blue; more -> N dips. |
+| Working | Blue | Steady (orchestrator) or N dips | Work in progress. Steady blue = the orchestrator itself (no background workers). N dips = N subagents/background workers (laptop subagents + station LXC sessions); the orchestrator alone never adds a dip. |
 | Full send | Rainbow | Wave | Work in progress **and** the GPU is busy (util over threshold). |
 | Fault | Amber | Steady | Health is RED, or the health signal is stale. |
 | Maintenance | Violet | Steady | Service mode (set manually via the override file). |
