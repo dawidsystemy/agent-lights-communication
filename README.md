@@ -7,6 +7,11 @@
 
 **Ambient status for a fleet of AI-agent coding sessions - on the RGB LEDs your PC already has.**
 
+<p align="center">
+  <img src="docs/media/demo-green.gif" width="560" alt="Case fans glowing steady green: the fleet is idle, nothing needs you.">
+  <br><em>Steady green: fleet idle, nothing needs you. (Full state-cycle demo coming shortly.)</em>
+</p>
+
 Most "agent status light" projects want you to buy a gadget: a USB cube, a smart bulb, a
 strip on the wall. Agent-Lights takes a different angle. If you run a homelab, you already
 have a wall of addressable RGB - the pump ring and fans inside your desktop, driven by
