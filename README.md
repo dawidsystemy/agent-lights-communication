@@ -57,6 +57,34 @@ sitting there glowing a pointless static colour.
 - **Fail-open everywhere** - every counter has a staleness gate and a fallback; a dead
   session cleans itself up.
 
+## Reliability
+
+An ambient light is only useful if you can trust it - a status light that lies is worse than
+none. This has been hardened by daily production use, with four real-world failure modes fixed
+so the light heals itself instead of getting stuck:
+
+- **Self-healing counters.** A background counter (`working.count`) left positive by a session
+  that was killed mid-write used to keep the light "working" for hours. It's now zeroed
+  automatically once it's been untouched for 3 h. Session markers are likewise judged live from
+  the session's transcript freshness, not the marker file's own age, so a marker that something
+  keeps touching can't pin the light blue after the session is gone.
+- **Subagent auto-count.** The number of working dips is derived from the live subagent
+  transcripts on disk (files touched in the last 3 min), merged with the manual `working.count`
+  (which can only raise it). A parallel session that forgot to bump the counter still lights the
+  right number of dips instead of showing a lone steady blue.
+- **Loop watchdog.** The heartbeat loop can die mid-session, and a logon-only task would leave
+  the LED frozen on its last frame until the next login. A 1-minute watchdog
+  (`laptop/watchdog.ps1`) checks the heartbeat log for a recent tick and restarts the loop within
+  a minute if it went silent.
+- **Background-turn marker.** A turn woken by a background agent's message or a notification skips
+  the `UserPromptSubmit` hook, so the work used to run "after green" (invisible). A `PreToolUse`
+  hook (`examples/session-signal-pretooluse.py`) lights the working marker on any tool call, so the
+  light goes blue no matter what triggered the turn.
+
+Every one of these degrades gracefully: the transcript-based features need the Claude projects
+directory (`$AL_ClaudeProjectsDir`), and when it's absent the plain mtime-based fallbacks run
+instead, so any script that just writes integers to the counter files keeps working.
+
 ## Architecture
 
 ```mermaid
@@ -163,14 +191,42 @@ Copy-Item laptop\agent-lights-config.example.ps1 laptop\agent-lights-config.ps1
 ```
 
 Run `laptop\push-now.ps1` once to confirm the heartbeat reaches the station (check
-`/run/agent-lights/hb-laptop` on the station). Then register `laptop\heartbeat-loop.ps1` as a
-Task Scheduler task at logon for a steady 15 s beat.
+`/run/agent-lights/hb-laptop` on the station). Then register the heartbeat loop at logon for a
+steady 15 s beat, and the watchdog every minute so a dead loop restarts on its own (see
+[Reliability](#reliability)):
+
+```powershell
+$repo = (Resolve-Path .).Path
+
+# Heartbeat loop - runs at logon, keeps itself alive across the session.
+Register-ScheduledTask -TaskName 'AgentLights-Heartbeat' `
+  -Trigger (New-ScheduledTaskTrigger -AtLogOn) `
+  -Action (New-ScheduledTaskAction -Execute 'powershell.exe' `
+    -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$repo\laptop\heartbeat-loop.ps1`"") `
+  -Settings (New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries)
+
+# Watchdog - runs every minute, restarts the loop if the heartbeat log went silent.
+Register-ScheduledTask -TaskName 'AgentLights-Watchdog' `
+  -Trigger (New-ScheduledTaskTrigger -Once -At (Get-Date) `
+    -RepetitionInterval (New-TimeSpan -Minutes 1) -RepetitionDuration ([TimeSpan]::MaxValue)) `
+  -Action (New-ScheduledTaskAction -Execute 'powershell.exe' `
+    -Argument "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File `"$repo\laptop\watchdog.ps1`"") `
+  -Settings (New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries)
+```
+
+The watchdog expects the loop task to be named `AgentLights-Heartbeat` (the name at the top of
+`laptop\watchdog.ps1`); keep the two in sync if you rename it.
 
 ### 3. Agent hooks (optional)
 
-To make the light follow your Claude Code sessions, wire `examples/session-signal.py` into
-your `~/.claude/settings.json` using `examples/claude-hooks.example.json` as a template, and
-point `AGENT_LIGHTS_STATE` at the same state directory the heartbeat reads.
+To make the light follow your Claude Code sessions, wire the hooks into your
+`~/.claude/settings.json` using `examples/claude-hooks.example.json` as a template, and point
+`AGENT_LIGHTS_STATE` at the same state directory the heartbeat reads. Two scripts are involved:
+
+- `examples/session-signal.py` on `UserPromptSubmit` / `Stop` / `PostToolUse` / `Notification`.
+- `examples/session-signal-pretooluse.py` on `PreToolUse` (matcher `*`) - lights the working
+  marker for turns woken by a background agent or a notification, which skip `UserPromptSubmit`
+  (see [Reliability](#reliability)).
 
 ## Configuration
 

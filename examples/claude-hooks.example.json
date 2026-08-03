@@ -1,6 +1,18 @@
 {
-  "_comment": "Example Claude Code hooks wiring for Agent-Lights-Communication. Merge the relevant blocks into your ~/.claude/settings.json (adjust the absolute path to session-signal.py). Each hook is fail-open and prints nothing to stdout.",
+  "_comment": "Example Claude Code hooks wiring for Agent-Lights-Communication. Merge the relevant blocks into your ~/.claude/settings.json (adjust the absolute paths). session-signal.py drives UserPromptSubmit/Stop/PostToolUse/Notification. session-signal-pretooluse.py (PreToolUse, matcher *) covers a blind spot: turns woken by a background agent's message / a notification skip UserPromptSubmit, so without it the work would show 'after green' instead of blue. Each hook is fail-open and prints nothing to stdout.",
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"/path/to/agent-lights-communication/examples/session-signal-pretooluse.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
