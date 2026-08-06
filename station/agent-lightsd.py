@@ -8,9 +8,10 @@
 #
 # LIGHT LANGUAGE (full spec in docs/SEMANTICS.md):
 #   Steady light  = the system is alive. A black frame means something died.
-#   BLUE          = work in progress. N gentle dips = N working units
-#                   (orchestrator sessions + subagents + station sessions).
-#                   Exactly 1 unit -> steady blue (no dips). Cap at COUNT_CAP.
+#   BLUE          = work in progress. N gentle dips = N BACKGROUND workers
+#                   (laptop subagents + station container sessions). The
+#                   orchestrator alone never adds a dip: a lone orchestrator is
+#                   STEADY blue. Cap at COUNT_CAP.
 #   RED dips      = decisions waiting for a human (blocking prompts). Injected as
 #                   a brief "poke" on top of the base colour so work stays visible.
 #   GREEN dips    = queued decision cards (a calm backlog, not blocking).
@@ -533,14 +534,15 @@ def render_profile_a(mon):
 # amber(fault) > rainbow(full GPU) > blue(work) > green-blink(cards) > green-steady(idle)
 # prompt (blocking decisions) does NOT dominate the cascade - it is overlaid as a RED POKE on top of
 # the BASE state (work/idle) in apply(). The cascade only picks the BACKGROUND colour; red is a separate layer.
-# BLUE: units=me+subs+station; units==1 -> blue_n=0 (steady); units>=2 -> blue_n=units (N dips).
+# BLUE: bg=subs+station (background workers); blue_active=(me+bg)>=1; blue_n=0 if bg==0 else bg.
+#       So a lone orchestrator (me=1, bg=0) is STEADY blue, and N dips always mean N background workers.
 def decide(cards, health, blue_active, blue_n, gpu):
     if health == 'RED':
         return ('orange', 0)
     if blue_active and gpu > GPU_THRESH:
         return ('rainbow', 0)
     if blue_active:
-        return ('blue', blue_n)                   # work: n=total units (0 -> steady, exactly 1 unit)
+        return ('blue', blue_n)                   # work: n=background workers (0 -> steady)
     if cards >= 1:
         return ('green_blink', cards)             # global cards (panel) = green dips (not red)
     return ('green', 0)                           # steady green = zero work and zero cards
@@ -860,9 +862,10 @@ def main():
             cards = read_waiting()              # global cards (panel) -> GREEN dips (NOT red)
             prompt = read_prompt()              # blocking decisions (prompt markers + red-extra) -> RED transitions
             health = read_health()
-            units = me + subs + station         # total working units (orchestrators + subagents)
-            blue_active = units >= 1
-            blue_n = 0 if units <= 1 else units  # 1 unit -> steady (sentinel 0); N>1 -> N dips
+            bg = subs + station                 # BACKGROUND workers (laptop subagents + container sessions)
+            blue_active = (me + bg) >= 1        # work = an orchestrator session OR any background worker
+            blue_n = 0 if bg == 0 else bg       # dips count ONLY background workers; a lone orchestrator
+                                                # (bg=0) stays STEADY blue instead of dipping once
             poke_current = prompt               # red poke = ONLY blocking decisions (not cards)
             gpu = gpu_util() if (prompt == 0 and health != 'RED' and blue_active) else 0
             cur = decide(cards, health, blue_active, blue_n, gpu)

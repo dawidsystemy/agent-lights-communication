@@ -4,6 +4,42 @@ All notable changes to Agent-Lights-Communication are documented here. The forma
 [Keep a Changelog](https://keepachangelog.com/), and this project adheres to
 [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] - 2026-08-06
+
+Correctness release. **0.2.0 shipped a daemon whose blue-dip counting did not match its own
+documentation** - `docs/SEMANTICS.md` described one rule and `agent-lightsd.py` implemented
+another. The docs were right; the code has been fixed to match them.
+
+**Visible change after updating:** the number of blue dips will go DOWN on most fleets. Dips now
+count background workers only (subagents + container sessions); orchestrator sessions no longer
+add dips of their own. Two examples of the same fleet before and after:
+
+| Fleet state | 0.2.0 showed | 0.2.1 shows |
+|---|---|---|
+| 1 orchestrator + 1 subagent | 2 dips | 1 dip |
+| 2 orchestrator windows, nothing in the background | 2 dips | steady blue |
+| 2 orchestrators + 3 subagents | 5 dips | 3 dips |
+
+If you had learned to read the old (undocumented) behaviour, recalibrate: a dip now always means
+"something extra is running", and steady blue means "just me, nothing in the background".
+
+### Fixed
+- `agent-lightsd.py`: blue dips are computed from background workers only
+  (`bg = subs + station`; `blue_active = (me + bg) >= 1`; `blue_n = 0 if bg == 0 else bg`)
+  instead of the total unit count (`units = me + subs + station`). The old formula inflated the
+  count by the number of orchestrator sessions, so a lone orchestrator with one subagent dipped
+  twice and two idle orchestrator windows dipped twice while nothing was running in the
+  background. This is the rule `docs/SEMANTICS.md` and `agent-lights-demo.sh` have described
+  since 0.1.0; only the daemon disagreed.
+- Comments that carried the stale formula (the light-language header, the `decide()` docstring)
+  and the matching README bullet, which still said "N dips = N working units".
+
+### Added
+- `config.session-monitor.example.map` - documented example of the `session-monitor.map` file
+  used by zone profile A. The file was referenced by `docs/SEMANTICS.md` and read by
+  `heartbeat.ps1`, but no example of its format shipped, so profile A left every zone dimmed
+  with no hint why.
+
 ## [0.2.0] - 2026-08-03
 
 Reliability release. Four real-world failure modes - found by running this daily in production -

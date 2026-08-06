@@ -44,8 +44,9 @@ sitting there glowing a pointless static colour.
 - **One glanceable light language** (full spec in [docs/SEMANTICS.md](docs/SEMANTICS.md)):
   blue = working, green = idle/backlog, amber = fault, rainbow = full send, plus a red
   "poke" for decisions waiting on you.
-- **Counting by gentle dips, not blinking** - N smooth dips = N working units (or N pending
-  decisions), countable at a glance, with a hard cap and a 6+ alarm.
+- **Counting by gentle dips, not blinking** - N smooth dips = N background workers (or N pending
+  decisions), countable at a glance, with a hard cap and a 6+ alarm. A lone orchestrator with
+  nothing in the background is steady blue, so a dip always means "something extra is running".
 - **Never-black transitions** - state changes go through a brightness channel or crossfade,
   so a black frame always means "something died", never "just switching".
 - **Zone profiles** - map pump/fans to cluster units (host / GPU VM / containers) or to

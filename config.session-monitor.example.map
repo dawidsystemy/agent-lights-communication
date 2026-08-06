@@ -1,0 +1,25 @@
+# === Agent-Lights-Communication: session -> monitor map (example, PROFILE=A only) ===
+# Copy to <state dir>/session-monitor.map (next to working.count, e.g. ~/.agent-lights/).
+# Only needed when the station daemon runs PROFILE=A (zone per physical screen). PROFILE=B
+# (cluster units) and the plain semaphore ignore this file entirely.
+#
+# Format:  <session_id_prefix>=<monitor_index>
+#   session_id_prefix = the first characters of a Claude Code session id. Matching is
+#                       "starts with", so 8 characters are plenty.
+#   monitor_index     = 0..3, matching the A_* zone assignments in the zones config
+#                       (A_PUMP=0, A_FAN_RIGHT=1, ...). Index 0 is usually your main screen.
+#
+# Where to find the session ids: the marker files the hook writes, one per live session:
+#   <state dir>/me/<session_id>.flag
+# Take the leading characters of those filenames.
+#
+# Example (replace with your own prefixes - these are placeholders, not real ids):
+#   a1b2c3d4=0
+#   e5f6a7b8=1
+#   c9d0e1f2=2
+#   b3c4d5e6=3
+#
+# An empty map (comments only) is valid: in PROFILE=A every zone then stays dimmed,
+# because no session is pinned to any screen.
+#
+# Switch profiles on the station with:  agent-lights-profile.sh A|B|off
